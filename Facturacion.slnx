@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="facturacion.client/facturacion.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Facturacion.Server/Facturacion.Server.csproj" />
+</Solution>
