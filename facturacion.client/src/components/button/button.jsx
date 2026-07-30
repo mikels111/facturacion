@@ -1,5 +1,5 @@
 import styles from './button.module.css'
-function Button({action}) {
+function ButtonM({action}) {
     return (
         <button className={styles['button-ingreso']} onClick={() => { action() }}>
             Ingresar
@@ -7,4 +7,4 @@ function Button({action}) {
   );
 }
 
-export default Button;
+export default ButtonM;

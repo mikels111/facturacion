@@ -16,6 +16,7 @@ namespace Facturacion.Server.Data
             optionsBuilder.UseSqlite(connection);
         }
         public DbSet<Moneyboxes> Moneyboxes { get; set; }
+        public DbSet<History> History { get; set; }
 
     }
 }
