@@ -15,6 +15,10 @@ namespace Facturacion.Server.Data
 
             optionsBuilder.UseSqlite(connection);
         }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext()  { }
+
+
         public DbSet<Moneyboxes> Moneyboxes { get; set; }
         public DbSet<History> History { get; set; }
 

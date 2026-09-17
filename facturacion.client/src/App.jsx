@@ -2,7 +2,7 @@ import React, { StrictMode, useEffect, useState } from 'react';
 import './App.css';
 import { Moneybox } from './components/moneybox/moneybox';
 import MoneyboxesHistoryPanel from './components/moneybox/MoneyboxesHistoryPanel';
-import { MoneyBoxesService, GlobalAmount, GetHistory, GetHistoryForEachBoxLastMonth } from '../src/services/MoneyBoxService';
+import { MoneyBoxesService, GlobalAmount, GetHistory, GetHistoryForEachBoxLastMonth, GetHistoryGlobalAmountOneMonth } from '../src/services/MoneyBoxService';
 import axios from 'axios';
 import ButtonM from './components/button/button';
 import Modal from '@mui/material/Modal';
@@ -14,8 +14,10 @@ export const Context = React.createContext();
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import Divider from '@mui/material/Divider';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import { RechartsDevtools } from '@recharts/devtools';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { BarChart, Bar, Area, AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 function App() {
     const [moneyBoxes, setMoneyBoxes] = useState();
     const [globalAmountValue, setGlobalAmountValue] = useState();
@@ -25,6 +27,8 @@ function App() {
         description: ""
     });
     const [history4weeks, setHistory4weeks] = useState();
+    const [historyAmnt4weeks, setHistoryAmnt4weeks] = useState();
+    const [tabValue, setTabValue] = useState(0);
 
     const getHistoryData = () => {
         GetHistory()
@@ -64,6 +68,16 @@ function App() {
                 console.log("App error-> ", err);
             });
     }
+    const getHistoryGlobalAmountOneMonth = () => {
+        GetHistoryGlobalAmountOneMonth()
+            .then((response) => {
+                console.log("gethistoryforeachboxlastmonth: ", response)
+                setHistoryAmnt4weeks(response);
+            })
+            .catch((err) => {
+                console.log("App error-> ", err);
+            });
+    }
 
     useEffect(() => {
 
@@ -71,7 +85,9 @@ function App() {
         getGlobalAmount();
         getHistoryData();
         getHistoryForEachBoxLastMonth();
-        
+        getHistoryGlobalAmountOneMonth();
+
+
     }, []);
 
     useEffect(() => {
@@ -137,6 +153,9 @@ function App() {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+    const handleChangeTab = (event, newValue) => {
+        setTabValue(newValue);
+    };
     return (
         <Context.Provider value={{
             getMoneyBoxes,
@@ -194,32 +213,79 @@ function App() {
 
 
                             </div>
-                            <h2>Box amounts last month</h2>
-                            <BarChart
-                                style={{ width: '100%', maxWidth: '900px', maxHeight: '40vh', aspectRatio: 1.618 }}
-                                responsive
-                                data={history4weeks}
-                                margin={{
-                                    top: 5,
-                                    right: 0,
-                                    left: 0,
-                                    bottom: 5,
-                                }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis width="auto" />
-                                <Tooltip />
-                                <Legend />
-                                <Bar dataKey="inversion" fill="#fcba03" activeBar={{ fill: 'pink', stroke: 'blue' }} />
-                                <Bar dataKey="gastosBasicos" fill="#ca80ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
-                                <Bar dataKey="ocio" fill="#5784ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
-                                <Bar dataKey="gastosGrandes" fill="#0af7ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
-                                <Bar dataKey="donacion" fill="#82ca9d" activeBar={{ fill: 'gold', stroke: 'purple' }} />
+                            
 
 
-                                <RechartsDevtools />
-                            </BarChart>
+                            <Box sx={{ width: '100%' }}>
+                                <Tabs
+                                    value={tabValue}
+                                    onChange={handleChangeTab}
+                                    aria-label="wrapped label tabs example"
+                                >
+                                    <Tab label="Amount" {...a11yProps(0)} />
+                                    <Tab label="Expenses" {...a11yProps(1)} />
+                                </Tabs>
+                                <CustomTabPanel value={tabValue} index={0}>
+                                    <h2>last four weeks</h2>
+                                    <AreaChart
+                                        style={{ width: '100%', maxWidth: '10000px', maxHeight: '50vh', aspectRatio: 1.618 }}
+                                        responsive
+                                        data={historyAmnt4weeks}
+                                        margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+                                        value={tabValue}
+                                    >
+                                        <defs>
+                                            <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis width="1px" />
+                                        <Tooltip />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="amount"
+                                            stroke="#1976D2"
+                                            fillOpacity={1}
+                                            fill="url(#colorPv)"
+                                            isAnimationActive={true}
+                                        />
+                                        <RechartsDevtools />
+
+                                    </AreaChart>
+                                </CustomTabPanel>
+                                <CustomTabPanel value={tabValue} index={1}>
+                                    <h2>last four weeks</h2>
+                                    <BarChart
+                                        style={{ width: '100%', maxWidth: '1000px', maxHeight: '50vh', aspectRatio: 1.618 }}
+                                        responsive
+                                        data={history4weeks}
+                                        margin={{
+                                            top: 5,
+                                            right: 0,
+                                            left: 0,
+                                            bottom: 5,
+                                        }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis width="1px" />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar dataKey="inversion" fill="#fcba03" activeBar={{ fill: 'pink', stroke: 'blue' }} />
+                                        <Bar dataKey="gastosBasicos" fill="#ca80ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
+                                        <Bar dataKey="ocio" fill="#5784ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
+                                        <Bar dataKey="gastosGrandes" fill="#0af7ff" activeBar={{ fill: 'gold', stroke: 'purple' }} />
+                                        <Bar dataKey="donacion" fill="#82ca9d" activeBar={{ fill: 'gold', stroke: 'purple' }} />
+
+
+                                        <RechartsDevtools />
+                                    </BarChart>
+                                </CustomTabPanel>
+
+                            </Box>
                         </div>
                         <MoneyboxesHistoryPanel history={history} />
 
@@ -230,6 +296,27 @@ function App() {
     );
 
 
+}
+function a11yProps(index) {
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
+}
+function CustomTabPanel(props) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
 }
 
 export default App;

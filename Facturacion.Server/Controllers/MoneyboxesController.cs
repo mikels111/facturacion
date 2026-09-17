@@ -1,5 +1,6 @@
 ﻿using Facturacion.Server.Data;
 using Facturacion.Server.Models;
+using Facturacion.Server.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -220,19 +221,20 @@ namespace Facturacion.Server.Controllers
             var formatHistory = Enumerable.Empty<object>();
             try
             {
-                data = await _AppDbContext.History.ToListAsync();
-                formatHistory = data.Select(p => new
-                {
-                    p.IdHistory,
-                    p.HistoryTypeId,
-                    p.Moneybox,
-                    Amount = p.Amount.ToString("F2", new CultureInfo("es-ES")),
-                    p.Description,
-                    p.Date,
-                    MoneyBoxPreviousAmount = p.MoneyBoxPreviousAmount.ToString("F2", new CultureInfo("es-ES")),
-                    GlobalPreviousAmount = p.GlobalPreviousAmount.ToString("F2", new CultureInfo("es-ES"))
+                //data = await _AppDbContext.History.ToListAsync();
+                //formatHistory = data.Select(p => new
+                //{
+                //    p.IdHistory,
+                //    p.HistoryTypeId,
+                //    p.Moneybox,
+                //    Amount = p.Amount.ToString("F2", new CultureInfo("es-ES")),
+                //    p.Description,
+                //    p.Date,
+                //    MoneyBoxPreviousAmount = p.MoneyBoxPreviousAmount.ToString("F2", new CultureInfo("es-ES")),
+                //    GlobalPreviousAmount = p.GlobalPreviousAmount.ToString("F2", new CultureInfo("es-ES"))
 
-                }).ToList();
+                //}).ToList();
+                formatHistory = await HistoryService.GetHistory(_AppDbContext);
             }
             catch (Exception ex)
             {
@@ -339,6 +341,24 @@ namespace Facturacion.Server.Controllers
             return Ok(historyChart);
         }
 
+        [Route("GetHistoryGlobalAmount")]
+        [HttpGet]
+        public async Task<IActionResult> GetHistoryGlobalAmount()
+        {
+            //por hacer --> que reciba el array como parametro para modificar solo los que se le indiquen
+            int result = 0;
+            List<HistoryAmountDTO> historyData1 = new List<HistoryAmountDTO>();
+            try
+            {
+                historyData1 = await History.GetHistoryGlobalAmount(_AppDbContext, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return Ok(historyData1);
+        }
 
     }
 }

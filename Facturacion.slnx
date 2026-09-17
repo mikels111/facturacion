@@ -4,4 +4,5 @@
     <Deploy />
   </Project>
   <Project Path="Facturacion.Server/Facturacion.Server.csproj" />
+  <Project Path="FacturacionServerTest/FacturacionServerTest.csproj" Id="358e1813-f9fa-4d05-adcc-f6391be08cf8" />
 </Solution>

@@ -20,6 +20,8 @@ namespace Facturacion.Server.Models
         public decimal GlobalPreviousAmount { get; set; } = 0;
 
         public record struct HistoryDTO(decimal Amount, string? Description);
+        public record struct HistoryAmountDTO(decimal Amount, DateOnly? Date);
+
         //public record struct HistoryChartDTO(string Name, DateTime DateStart, DateTime DateEnd, decimal Inversion = 0, decimal GastosBasicos = 0, decimal Ocio = 0, decimal GastosGrandes = 0, decimal Donacion = 0);
         public class HistoryChartDTO
         {
@@ -52,7 +54,16 @@ namespace Facturacion.Server.Models
             List<History> data = new List<History>();
             try
             {
+                //int historyCount = await appDbContext.History.Count();
                 data = await appDbContext.History.ToListAsync();
+
+                //int pageNumber = 2; // Número de página que deseas obtener
+                //int pageSize = 10; // Número de registros por página
+                //data = await appDbContext.History.AsNoTracking()
+                //.OrderBy(history => history.IdHistory)
+                //.Skip((pageNumber - 1) * pageSize)
+                //.Take(pageSize)
+                //.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -72,12 +83,12 @@ namespace Facturacion.Server.Models
                 resumenSemanal = await appDbContext.History
                 .Where(h => h.Date >= dateStart && h.Date <= dateEnd)
                 .Where(h => h.MoneyBoxId > 0)
+                .Where(h => h.HistoryTypeId == 2)
                 .GroupBy(h => h.MoneyBoxId)
                 .Select(g => new HistoryDTO
                 {
                     // Ordenamos el grupo por fecha y tomamos el 'MoneyBoxPreviousAmount' del registro más nuevo
-                    Amount = g.OrderByDescending(x => x.Date)
-                              .Select(x => x.Amount).Sum(),
+                    Amount = g.OrderByDescending(x => x.Date).Select(x => x.Amount).Sum(),
 
                     // El ID del grupo es el MoneyBoxId, así que lo usamos directamente
                     Description = g.Key.ToString()
@@ -91,6 +102,38 @@ namespace Facturacion.Server.Models
 
             return resumenSemanal;
         }
+        public static async Task<List<HistoryAmountDTO>> GetHistoryGlobalAmount(AppDbContext appDbContext, DateTime dateStart, DateTime dateEnd)
+        {
+            //DateTime startDate, DateTime endDate
+            List<History> data = new List<History>();
+            List<HistoryAmountDTO> amounts = new List<HistoryAmountDTO>();
+            try
+            {
+                //amounts = await appDbContext.History
+                //.Where(h => h.Date >= dateStart && h.Date <= dateEnd)
+                //.GroupBy(h => h.Date)
+                //.Select(g => new HistoryAmountDTO
+                //{
+                //    Amount = g.OrderByDescending(x => x.Date).Select(x => x.GlobalPreviousAmount).FirstOrDefault(),
+                //    Date = DateOnly.FromDateTime(g.Select(x => x.Date).FirstOrDefault()) 
+                //}).ToListAsync();
+                amounts = await appDbContext.History
+                .Where(h => h.Date >= dateStart && h.Date <= dateEnd)
+                .Select(g => new HistoryAmountDTO
+                {
+                    Amount = g.GlobalPreviousAmount,
+                    Date = DateOnly.FromDateTime(g.Date)
+                }).ToListAsync();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return amounts;
+        }
+
 
     }
 }
